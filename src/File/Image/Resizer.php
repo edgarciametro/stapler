@@ -50,6 +50,13 @@ class Resizer implements ResizerInterface
             return $filePath;
         }
 
+        if ($method == 'resizeOnly') {
+            $this->resizeOnly($file, $width, $height)
+                ->save($filePath);
+
+            return $filePath;
+        }
+
         $image = $this->imagine->open($file->getRealPath());
 
         if ($style->autoOrient) {
@@ -57,7 +64,7 @@ class Resizer implements ResizerInterface
         }
 
         $this->$method($image, $width, $height)
-           ->save($filePath, $style->convertOptions);
+            ->save($filePath, $style->convertOptions);
 
         return $filePath;
     }
@@ -118,6 +125,13 @@ class Resizer implements ResizerInterface
             $height = rtrim($height, '!');
 
             return [$width, $height, 'exact'];
+        }
+
+        if ($resizingOption == '&') {
+            // Resize by exact width/height (does not preserve aspect ratio).
+            $height = rtrim($height, '&');
+
+            return [$width, $height, 'only'];
         }
 
         // Let the script decide the best way to resize.
@@ -240,6 +254,20 @@ class Resizer implements ResizerInterface
      * @return ImageInterface
      */
     protected function resizeExact(ImageInterface $image, $width, $height)
+    {
+        return $image->resize(new Box($width, $height));
+    }
+
+    /**
+     * Resize an image to an exact width and height.
+     *
+     * @param ImageInterface $image
+     * @param string         $width  - The image's new width.
+     * @param string         $height - The image's new height.
+     *
+     * @return ImageInterface
+     */
+    protected function resizeOnly(ImageInterface $image, $width, $height)
     {
         return $image->resize(new Box($width, $height));
     }
